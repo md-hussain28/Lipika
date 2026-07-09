@@ -1,0 +1,28 @@
+[project]
+name = "lipika"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "asyncpg>=0.31.0",
+    "fastapi[standard]>=0.139.0",
+    "gunicorn>=26.0.0",
+    "openai>=2.44.0",
+    "prometheus-fastapi-instrumentator>=8.0.2",
+    "pydantic-settings>=2.14.2",
+    "redis>=8.0.1",
+    "slowapi>=0.1.10",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "structlog>=26.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
