@@ -10,27 +10,14 @@ from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI
-from sqlalchemy.ext.asyncio import AsyncEngine
 
 from src.core.config import Settings
-from src.db import models  # noqa: F401 — registers models with Base.metadata
-from src.db.base import Base
+from src.db import models  # noqa: F401 — register ORM models and relationships
 from src.db.session import create_engine, create_session_factory
 from src.services.ai_client import create_ai_client
 from src.services.redis_client import close_redis_client, create_redis_client
 
 logger = structlog.get_logger(__name__)
-
-
-async def _create_tables(engine: AsyncEngine) -> None:
-    """
-    Create all tables that don't exist yet.
-
-    Fine for development and small projects. In production you should switch
-    to Alembic migrations for safe, versioned schema changes.
-    """
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
 
 
 @asynccontextmanager
@@ -57,7 +44,6 @@ async def lifespan(app: FastAPI):
     # 1. Database engine + session factory
     engine = create_engine(settings)
     session_factory = create_session_factory(engine)
-    await _create_tables(engine)
 
     app.state.db_engine = engine
     app.state.db_session_factory = session_factory

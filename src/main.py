@@ -235,7 +235,8 @@ app = create_application()
 # ── Environment Variables (copy .env.example → .env) ───────────────────────
 #
 #   ENVIRONMENT=development          # development | staging | production
-#   DATABASE_URL=sqlite+aiosqlite:///./lipika.db
+#   DATABASE_URL=postgresql+asyncpg://user@localhost:5432/lipika
+#   Run migrations before starting: make migrate  (alembic upgrade head)
 #   REDIS_URL=                       # optional — redis://localhost:6379/0
 #   OPENAI_API_KEY=                  # optional — enables /api/v1/ai/complete
 #   BACKEND_CORS_ORIGINS=http://localhost:3000
@@ -246,13 +247,15 @@ app = create_application()
 # ── Adding a New Endpoint (step-by-step) ────────────────────────────────────
 #
 #   1. Create src/db/models/my_model.py (if it needs a database table).
-#   2. Import it in src/db/models/__init__.py.
-#   3. Create src/schemas/my_feature.py with Pydantic request/response models.
-#   4. Create src/api/v1/endpoints/my_feature.py with an APIRouter().
-#   5. Register it in src/api/router.py:
+#   2. Register it in src/db/models/__init__.py (the only central import point).
+#      Everywhere else: from src.db.models import MyModel
+#   3. Generate and apply a migration: make migration msg="add my_model" && make migrate
+#   4. Create src/schemas/my_feature.py with Pydantic request/response models.
+#   5. Create src/api/v1/endpoints/my_feature.py with an APIRouter().
+#   6. Register it in src/api/router.py:
 #        api_router.include_router(my_feature.router, prefix="/my-feature", tags=["MyFeature"])
-#   6. Restart the dev server — it appears at /api/v1/my-feature/...
-#   7. Visit http://localhost:8000/docs to test interactively (dev only).
+#   7. Restart the dev server — it appears at /api/v1/my-feature/...
+#   8. Visit http://localhost:8000/docs to test interactively (dev only).
 #
 # ── API Endpoints (current) ─────────────────────────────────────────────────
 #

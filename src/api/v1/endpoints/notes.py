@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
 from src.api.deps import DBSession
-from src.db.models.note import Note
+from src.db.models import Note
 from src.schemas.note import NoteCreate, NoteRead
 
 router = APIRouter()
