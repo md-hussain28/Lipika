@@ -9,6 +9,7 @@ SQLAlchemy 2.0 async pattern:
 
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -22,6 +23,9 @@ from src.core.config import Settings
 def create_engine(settings: Settings) -> AsyncEngine:
     """
     Build the async SQLAlchemy engine with a connection pool.
+
+    Creating an engine does NOT open a connection — call verify_connection()
+    at startup to fail fast when the database is unreachable.
 
     SQLite (dev default):  sqlite+aiosqlite:///./lipika.db
     PostgreSQL (prod):   postgresql+asyncpg://user:pass@host:5432/lipika
@@ -37,6 +41,12 @@ def create_engine(settings: Settings) -> AsyncEngine:
         pool_pre_ping=True,  # verify connections before use (handles stale pool conns)
         connect_args=connect_args,
     )
+
+
+async def verify_connection(engine: AsyncEngine) -> None:
+    """Open a real connection and run SELECT 1 — raises if the database is down."""
+    async with engine.connect() as connection:
+        await connection.execute(text("SELECT 1"))
 
 
 def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:

@@ -13,7 +13,7 @@ from fastapi import FastAPI
 
 from src.core.config import Settings
 from src.db import models  # noqa: F401 — register ORM models and relationships
-from src.db.session import create_engine, create_session_factory
+from src.db.session import create_engine, create_session_factory, verify_connection
 from src.services.ai_client import create_ai_client
 from src.services.redis_client import close_redis_client, create_redis_client
 
@@ -41,13 +41,21 @@ async def lifespan(app: FastAPI):
 
     # ── STARTUP: open long-lived resources ──────────────────────────────
 
-    # 1. Database engine + session factory
+    # 1. Database engine + session factory (verified with a real SELECT 1)
     engine = create_engine(settings)
-    session_factory = create_session_factory(engine)
+    try:
+        await verify_connection(engine)
+    except Exception:
+        await engine.dispose()
+        logger.exception(
+            "database_connection_failed",
+            url=settings.DATABASE_URL.split("@")[-1],
+        )
+        raise
 
+    session_factory = create_session_factory(engine)
     app.state.db_engine = engine
     app.state.db_session_factory = session_factory
-
     logger.info("database_connected", url=settings.DATABASE_URL.split("@")[-1])
 
     # 2. Redis (optional — skipped when REDIS_URL is empty)
