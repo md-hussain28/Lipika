@@ -1,19 +1,36 @@
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
-from src.db.models.user import User
-from src.schemas.auth import UserRegisterRequest
+from src.api.deps.auth import RegisterServiceDep
+from src.schemas.auth import UserRead, UserRegisterRequest
+from src.services.auth.exceptions import EmailAlreadyRegisteredError
+
 router = APIRouter()
 
-@router.post("/register")
-async def register(user: UserRegisterRequest,request: Request, response: Response):
-    body = await request.body()
-    print("Body:------>", body, "User:------>", user)
-    return {"body": "hello"}
+
+@router.post(
+    "/register",
+    response_model=UserRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def register(
+    body: UserRegisterRequest,
+    register_service: RegisterServiceDep,
+) -> UserRead:
+    """Create a new user account."""
+    try:
+        user = await register_service.register(body)
+    except EmailAlreadyRegisteredError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    return UserRead.model_validate(user)
 
 
 @router.post("/login")
 async def login(request: Request, response: Response):
     return {"message": "Hello, World!"}
+
 
 @router.post("/logout")
 async def logout(request: Request, response: Response):

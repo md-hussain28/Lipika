@@ -1,10 +1,8 @@
 """
-FastAPI dependency injection — reusable Depends() callables for routes.
+Infrastructure dependencies — shared across every feature.
 
-Instead of reaching into request.app.state manually in every endpoint,
-declare what you need as a function parameter:
-
-    async def my_route(db: DBSession, redis: RedisClient): ...
+DB session, Redis, settings, AI client. Feature-specific deps (auth, notes)
+live in sibling modules and build on these.
 """
 
 from collections.abc import AsyncGenerator
